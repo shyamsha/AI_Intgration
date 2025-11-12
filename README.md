@@ -6,7 +6,7 @@ This repository contains a ready-to-run **frontend** (Vite + React + TypeScript)
 - PDF preview using `react-pdf`
 - Chat-like UI that returns mock assistant replies and citation buttons that navigate to PDF pages
 
-This is **starter code** to meet the assignment requirements and to be extended with AI/vector tools (LlamaIndex, OpenAI, Pinecone, etc.) for full functionality.
+This is **starter code** to meet the assignment requirements and to be extended with AI/vector tools for full functionality.
 
 ## What I included
 
