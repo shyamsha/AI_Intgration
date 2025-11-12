@@ -1,4 +1,4 @@
-# NotebookLM Clone (Take-Home Assignment) — Frontend + Backend
+# NotebookLM Clone — Frontend + Backend
 
 This repository contains a ready-to-run **frontend** (Vite + React + TypeScript) and a minimal **backend** (Node + Express) implementing:
 
