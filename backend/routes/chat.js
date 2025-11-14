@@ -19,11 +19,8 @@ router.post("/chat", async (req, res) => {
         .json({ error: "No PDF uploaded. Please upload a PDF first." });
     }
 
-    console.log("💬 Processing query:", query);
-
     // Search for relevant chunks using vector store
     const relevantChunks = vectorStore.search(query, 3);
-    console.log(`🔍 Found ${relevantChunks.length} relevant chunks`);
 
     if (relevantChunks.length === 0) {
       return res.json({
@@ -43,8 +40,6 @@ router.post("/chat", async (req, res) => {
       .map((chunk) => ({ page: chunk.estimatedPage }))
       .filter((v, i, a) => a.findIndex((t) => t.page === v.page) === i) // Remove duplicates
       .slice(0, 3);
-
-    console.log("📖 Citations:", citations);
 
     // Generate response using Groq
     const completion = await groq.chat.completions.create({
@@ -68,14 +63,12 @@ router.post("/chat", async (req, res) => {
       temperature: 1,
       max_completion_tokens: 1024,
       top_p: 1,
-      stream: true,
+      stream: false,
       stop: null,
     });
 
     const response =
       completion.choices[0]?.message?.content || "No response generated";
-
-    console.log("✅ Response generated successfully", response);
 
     res.json({
       response,
@@ -84,7 +77,7 @@ router.post("/chat", async (req, res) => {
       tokensUsed: completion.usage?.total_tokens || 0,
     });
   } catch (error) {
-    console.error("❌ Error in chat:", error);
+    console.error("Error in chat:", error);
     res.status(500).json({
       error: "Failed to process query",
       message: error.message,

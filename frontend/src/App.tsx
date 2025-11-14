@@ -56,6 +56,12 @@ const App: React.FC = () => {
       alert("Please upload a PDF file");
       return;
     }
+    const maxSize = 25 * 1024 * 1024; // 25MB
+    if (file.size > maxSize) {
+      alert("File too large. Maximum allowed size is 25MB.");
+      e.target.value = "";
+      return;
+    }
 
     setIsUploading(true);
     const BACKEND_UPLOAD_URL = "http://localhost:4000/api/upload";
@@ -82,7 +88,7 @@ const App: React.FC = () => {
 
       const url = URL.createObjectURL(file);
       setFileUrl(url);
-      console.log("Created object URL for PDF:", url, file);
+
       setPdfDoc({
         name: file.name,
         file: file,
@@ -119,66 +125,67 @@ const App: React.FC = () => {
       handleFileUpload(file as unknown as ChangeEvent<HTMLInputElement>);
   };
 
-  const generateResponse = (): Message => {
-    const responses: Array<{ content: string; citations: Citation[] }> = [
-      {
-        content: `Based on the document, this topic is discussed in detail. The key points include implementation strategies, best practices, and performance considerations.`,
-        citations: [
-          { page: 3, snippet: "Implementation strategies for optimal results" },
-          {
-            page: 7,
-            snippet: "Performance benchmarks and optimization techniques",
-          },
-        ],
-      },
-      {
-        content: `The document provides comprehensive information on this subject. Several methodologies are outlined with practical examples and case studies.`,
-        citations: [
-          { page: 12, snippet: "Methodology overview and framework" },
-          { page: 15, snippet: "Real-world case study analysis" },
-        ],
-      },
-      {
-        content: `This is explained through multiple sections. The document covers theoretical foundations, practical applications, and future directions in this area.`,
-        citations: [
-          { page: 5, snippet: "Theoretical foundations and principles" },
-          { page: 9, snippet: "Practical implementation examples" },
-          { page: 18, snippet: "Future research directions" },
-        ],
-      },
-    ];
-
-    const randomResponse =
-      responses[Math.floor(Math.random() * responses.length)];
-
-    return {
-      id: Date.now().toString(),
-      role: "assistant",
-      content: randomResponse.content,
-      citations: randomResponse.citations,
-      timestamp: new Date(),
-    };
-  };
-
-  const handleSendMessage = (): void => {
+  const handleSendMessage = async (): Promise<void> => {
     if (!inputValue.trim() || !pdfDoc || isLoading) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: inputValue,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
+    const userMessage = inputValue;
     setInputValue("");
     setIsLoading(true);
 
-    setTimeout(() => {
-      const aiResponse = generateResponse();
-      setMessages((prev) => [...prev, aiResponse]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        role: "user",
+        content: userMessage,
+        timestamp: new Date(),
+      },
+    ]);
+    const BACKEND_CHAT_URL = "http://localhost:4000/api/chat";
+    try {
+      const response = await fetch(`${BACKEND_CHAT_URL}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: userMessage,
+          filename: pdfDoc.name,
+        }),
+      });
+
+      const data = await response.json();
+      console.log("Response from backend:", data);
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          role: "assistant",
+          content: data.response || "Sorry, I could not generate a response.",
+          citations: data.citations || [],
+          timestamp: new Date(),
+        },
+      ]);
+    } catch (error) {
+      console.error("Error getting response:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          role: "assistant",
+          content: `Sorry, there was an error: ${
+            (error as Error).message || String(error)
+          }`,
+          timestamp: new Date(),
+        },
+      ]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handleCitationClick = (page: number): void => {
@@ -212,10 +219,6 @@ const App: React.FC = () => {
     setCurrentPage((prev) => Math.min(prev + 1, numPages));
   };
   useEffect(() => {
-    console.log(
-      "pdfjs worker src:",
-      (pdfjs as any).GlobalWorkerOptions?.workerSrc
-    );
     // test worker is reachable (network will show request)
     fetch((pdfjs as any).GlobalWorkerOptions?.workerSrc, { method: "HEAD" })
       .then((r) => console.log("worker HEAD status:", r.status))
