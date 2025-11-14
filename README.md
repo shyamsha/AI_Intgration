@@ -10,9 +10,8 @@ This is **starter code** to meet the assignment requirements and to be extended 
 
 ## What I included
 
-- `/frontend` — Vite + React + TypeScript app (source)
-- `/backend` — Node + Express server that accepts PDF uploads
-- `notebooklm-clone.zip` — zipped project (this archive)
+- `/frontend` — Vite + React + TypeScript app for PDF upload, preview, and chat UI
+- `/backend` — Node + Express server that accepts PDF uploads and has a placeholder chat endpoint
 
 ## How to run locally
 
