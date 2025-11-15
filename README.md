@@ -20,7 +20,7 @@ This is **starter code** to meet the assignment requirements and to be extended 
 ```bash
 cd backend
 npm install
-node index.js
+node index.js or npm run start
 # backend runs at http://localhost:4000
 ```
 
