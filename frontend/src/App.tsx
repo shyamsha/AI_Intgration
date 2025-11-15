@@ -64,7 +64,7 @@ const App: React.FC = () => {
     }
 
     setIsUploading(true);
-    const BACKEND_UPLOAD_URL = "http://localhost:4000/api/upload";
+    const BACKEND_UPLOAD_URL = "https://ai-intgration.onrender.com/api/upload";
     const form = new FormData();
     form.append("file", file);
 
@@ -141,7 +141,7 @@ const App: React.FC = () => {
         timestamp: new Date(),
       },
     ]);
-    const BACKEND_CHAT_URL = "http://localhost:4000/api/chat";
+    const BACKEND_CHAT_URL = "https://ai-intgration.onrender.com/api/chat";
     try {
       const response = await fetch(`${BACKEND_CHAT_URL}`, {
         method: "POST",
